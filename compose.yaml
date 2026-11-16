@@ -1,0 +1,48 @@
+name: tablebooking-operations-dev
+
+services:
+  operation-service:
+    profiles: ['app']
+    build:
+      context: .
+    image: tablebooking-operation-service:local
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3003
+      JWT_PUBLIC_KEY_PATH: /run/keys/auth-public.pem
+      DB_SSL_CA_PATH: /run/certs/supabase-ca.crt
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-operations_dev}:${RABBITMQ_PASSWORD:-local_operations_only}@rabbitmq:5672
+    ports:
+      - '127.0.0.1:${PORT:-3003}:3003'
+    volumes:
+      - '${JWT_PUBLIC_KEY_PATH:-./keys/auth-public.pem}:/run/keys/auth-public.pem:ro'
+      - '${DB_SSL_CA_PATH:-./certs/supabase-ca.crt}:/run/certs/supabase-ca.crt:ro'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - '127.0.0.1:${RABBITMQ_PORT:-5672}:5672'
+      - '127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-operations_dev}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-local_operations_only}
+    volumes:
+      - operations_rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+# Supabase hosts Postgres. This file does not start another database or gateway.
+# Operations provisions the V2 durable queues/bindings on this dev broker.
+# Coordinate the same queue arguments when using a shared team broker.
+volumes:
+  operations_rabbitmq:

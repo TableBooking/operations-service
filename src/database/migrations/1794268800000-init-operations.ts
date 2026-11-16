@@ -1,0 +1,21 @@
+import type { MigrationInterface, QueryRunner } from 'typeorm';
+
+// Exact V2 target SQL from the team's docs; only search_path is isolated.
+const schemaSql = "-- TARGET SCHEMA V2: operations_db: ONLY service allowed to transition reservation state / allocate table\nCREATE TABLE IF NOT EXISTS restaurants (\n id TEXT PRIMARY KEY, name TEXT NOT NULL, address TEXT NOT NULL DEFAULT '',\n phone TEXT, timezone TEXT NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',\n cancel_before_minutes INT NOT NULL DEFAULT 120 CHECK (cancel_before_minutes >= 0),\n checkin_early_minutes INT NOT NULL DEFAULT 30 CHECK (checkin_early_minutes >= 0),\n no_show_after_minutes INT NOT NULL DEFAULT 15 CHECK (no_show_after_minutes >= 0)\n);\nCREATE TABLE IF NOT EXISTS dining_areas (\n id TEXT PRIMARY KEY, restaurant_id TEXT NOT NULL REFERENCES restaurants(id),\n name TEXT NOT NULL, active BOOLEAN NOT NULL DEFAULT TRUE\n);\nCREATE TABLE IF NOT EXISTS dining_tables (\n id TEXT PRIMARY KEY, area_id TEXT NOT NULL REFERENCES dining_areas(id),\n name TEXT, capacity INT NOT NULL CHECK(capacity > 0), active BOOLEAN NOT NULL DEFAULT TRUE\n);\nCREATE TABLE IF NOT EXISTS service_slot_configs (\n code TEXT PRIMARY KEY, restaurant_id TEXT NOT NULL REFERENCES restaurants(id),\n starts_at_local TIME NOT NULL, ends_at_local TIME NOT NULL,\n active BOOLEAN NOT NULL DEFAULT TRUE,\n CHECK (ends_at_local > starts_at_local)\n);\nCREATE TABLE IF NOT EXISTS reservations (\n id UUID PRIMARY KEY, customer_id UUID NOT NULL, contact_email TEXT NOT NULL,\n contact_phone TEXT, slot_id TEXT NOT NULL,\n party_size INT NOT NULL CHECK(party_size BETWEEN 1 AND 12),\n note TEXT NOT NULL DEFAULT '',\n state TEXT NOT NULL CHECK(state IN ('REQUESTED','CONFIRMED','REJECTED','CANCELLED','CHECKED_IN','SEATED','COMPLETED','NO_SHOW')),\n aggregate_version INT NOT NULL CHECK (aggregate_version >= 1),\n table_id TEXT REFERENCES dining_tables(id),\n created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),\n CHECK(slot_id ~ '^\\d{4}-\\d{2}-\\d{2}-(lunch|dinner)$')\n);\nCREATE INDEX IF NOT EXISTS ix_ops_slot_state ON reservations(slot_id,state,created_at DESC);\nCREATE TABLE IF NOT EXISTS table_allocations (\n id UUID PRIMARY KEY, booking_id UUID NOT NULL REFERENCES reservations(id),\n table_id TEXT NOT NULL REFERENCES dining_tables(id),slot_id TEXT NOT NULL,\n allocated_at TIMESTAMPTZ NOT NULL DEFAULT now(),\n released_at TIMESTAMPTZ,\n CONSTRAINT ux_allocation_per_booking UNIQUE (booking_id)\n);\n-- Cancelled/no-show releases allocation; COMPLETED must keep occupancy record for the elapsed slot.\nCREATE UNIQUE INDEX IF NOT EXISTS ux_active_table_slot\n ON table_allocations(table_id,slot_id) WHERE released_at IS NULL;\nCREATE TABLE IF NOT EXISTS pending_cancellations (\n command_id UUID PRIMARY KEY, booking_id UUID NOT NULL, customer_id UUID NOT NULL,\n received_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);\nCREATE TABLE IF NOT EXISTS processed_commands (\n command_id UUID PRIMARY KEY, booking_id UUID NOT NULL,\n result JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);\nCREATE TABLE IF NOT EXISTS inbox_events (\n event_id UUID PRIMARY KEY, aggregate_id UUID NOT NULL,\n processed_at TIMESTAMPTZ NOT NULL DEFAULT now()\n);\nCREATE TABLE IF NOT EXISTS outbox_events (\n event_id UUID PRIMARY KEY, aggregate_id UUID NOT NULL, routing_key TEXT NOT NULL,\n payload JSONB NOT NULL, attempts INT NOT NULL DEFAULT 0,\n created_at TIMESTAMPTZ NOT NULL DEFAULT now(), published_at TIMESTAMPTZ\n);\nCREATE INDEX IF NOT EXISTS ix_ops_outbox_pending ON outbox_events(created_at) WHERE published_at IS NULL;";
+
+export class InitOperations1794268800000 implements MigrationInterface {
+  name = 'InitOperations1794268800000';
+
+  async up(queryRunner: QueryRunner): Promise<void> {
+    const existing = await queryRunner.query(
+      "SELECT tablename FROM pg_tables WHERE schemaname = 'operations' AND tablename <> 'typeorm_migrations'",
+    );
+    if (existing.length) throw new Error('Baseline requires a fresh operations schema; review existing data before upgrading');
+    await queryRunner.query('SET LOCAL search_path TO operations, pg_catalog');
+    await queryRunner.query(schemaSql);
+  }
+
+  async down(): Promise<void> {
+    throw new Error('Baseline rollback is disabled to avoid deleting reservation data; use a reviewed forward migration');
+  }
+}

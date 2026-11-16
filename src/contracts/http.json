@@ -1,0 +1,1283 @@
+{
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "CONFLICT"
+          },
+          "message": {
+            "type": "string",
+            "example": "Trạng thái đặt bàn đã thay đổi"
+          },
+          "correlationId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "correlationId"
+        ]
+      },
+      "PageMeta": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "example": 20,
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "example": "guest@example.test",
+            "format": "email"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Khách thử nghiệm"
+          },
+          "phone": {
+            "type": "string",
+            "example": 900000000
+          },
+          "role": {
+            "type": "string",
+            "example": "CUSTOMER",
+            "enum": [
+              "CUSTOMER",
+              "STAFF",
+              "MANAGER"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "role",
+          "active"
+        ]
+      },
+      "RegisterInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "guest@example.test",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "example": "StrongPass123!",
+            "minLength": 8
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Khách thử nghiệm"
+          },
+          "phone": {
+            "type": "string",
+            "example": 900000000
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "password",
+          "fullName"
+        ]
+      },
+      "LoginInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "guest@example.test",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "example": "StrongPass123!",
+            "minLength": 8
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AuthTokens": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "mock-token-customer"
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "example": 900
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ]
+      },
+      "UserPatch": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Nguyễn Văn B"
+          },
+          "phone": {
+            "type": "string",
+            "example": 912345678
+          }
+        },
+        "additionalProperties": false
+      },
+      "PasswordChange": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "StrongPass123!"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "AnotherStrongPass123!"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "StaffCreate": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "staff@example.test",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "example": "StrongPass123!"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Lễ tân mẫu"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "password",
+          "fullName"
+        ]
+      },
+      "AccountStatusInput": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "active"
+        ]
+      },
+      "Restaurant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "rest-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Nhà hàng Demo"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "Asia/Ho_Chi_Minh"
+          },
+          "address": {
+            "type": "string",
+            "example": "Đà Nẵng"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0236000000"
+          },
+          "cancelBeforeMinutes": {
+            "type": "integer",
+            "example": 120
+          },
+          "noShowAfterMinutes": {
+            "type": "integer",
+            "example": 15
+          },
+          "checkinEarlyMinutes": {
+            "type": "integer",
+            "example": 30
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "timezone"
+        ]
+      },
+      "Area": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "main"
+          },
+          "name": {
+            "type": "string",
+            "example": "Sảnh chính"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "active"
+        ]
+      },
+      "AreaInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "terrace"
+          },
+          "name": {
+            "type": "string",
+            "example": "Sân vườn"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "Table": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "T02"
+          },
+          "areaId": {
+            "type": "string",
+            "example": "main"
+          },
+          "name": {
+            "type": "string",
+            "example": "Bàn số 2"
+          },
+          "capacity": {
+            "type": "integer",
+            "example": 4,
+            "minimum": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "areaId",
+          "capacity",
+          "active"
+        ]
+      },
+      "TableInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "T05"
+          },
+          "areaId": {
+            "type": "string",
+            "example": "main"
+          },
+          "name": {
+            "type": "string",
+            "example": "Bàn số 5"
+          },
+          "capacity": {
+            "type": "integer",
+            "example": 4,
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "areaId",
+          "capacity"
+        ]
+      },
+      "TablePatch": {
+        "type": "object",
+        "properties": {
+          "areaId": {
+            "type": "string",
+            "example": "terrace"
+          },
+          "name": {
+            "type": "string",
+            "example": "Bàn cạnh cửa sổ"
+          },
+          "capacity": {
+            "type": "integer",
+            "example": 6,
+            "minimum": 1
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Slot": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "dinner"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-11-10",
+            "format": "date"
+          },
+          "startsAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": "string",
+            "example": "2026-11-10T19:30:00+07:00",
+            "format": "date-time"
+          },
+          "bookingOpen": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "date",
+          "startsAt",
+          "endsAt",
+          "bookingOpen"
+        ]
+      },
+      "SlotConfigInput": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "lunch"
+          },
+          "startsAtLocal": {
+            "type": "string",
+            "example": "11:30"
+          },
+          "endsAtLocal": {
+            "type": "string",
+            "example": "13:00"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "startsAtLocal",
+          "endsAtLocal"
+        ]
+      },
+      "Availability": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-11-10",
+            "format": "date"
+          },
+          "slotCode": {
+            "type": "string",
+            "example": "dinner"
+          },
+          "partySize": {
+            "type": "integer",
+            "example": 4,
+            "minimum": 1
+          },
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "availableTableCount": {
+            "type": "integer",
+            "example": 3,
+            "minimum": 0
+          },
+          "note": {
+            "type": "string",
+            "example": "Tham khảo, không giữ bàn"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "date",
+          "slotCode",
+          "partySize",
+          "available",
+          "availableTableCount"
+        ]
+      },
+      "BookingInput": {
+        "type": "object",
+        "properties": {
+          "slotId": {
+            "type": "string",
+            "example": "2026-11-10-dinner",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}-(lunch|dinner)$"
+          },
+          "partySize": {
+            "type": "integer",
+            "example": 4,
+            "minimum": 1,
+            "maximum": 12
+          },
+          "note": {
+            "type": "string",
+            "example": "Gần cửa sổ"
+          },
+          "contactPhone": {
+            "type": "string",
+            "example": 900000000
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "slotId",
+          "partySize"
+        ]
+      },
+      "BookingReceipt": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "processingStatus": {
+            "type": "string",
+            "example": "QUEUED",
+            "enum": [
+              "QUEUED"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "bookingId",
+          "processingStatus"
+        ]
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "slotId": {
+            "type": "string",
+            "example": "2026-11-10-dinner"
+          },
+          "partySize": {
+            "type": "integer",
+            "example": 4,
+            "minimum": 1
+          },
+          "note": {
+            "type": "string",
+            "example": "Gần cửa sổ"
+          },
+          "state": {
+            "type": "string",
+            "example": "REQUESTED",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "REJECTED",
+              "CANCELLED",
+              "CHECKED_IN",
+              "SEATED",
+              "COMPLETED",
+              "NO_SHOW"
+            ],
+            "nullable": true
+          },
+          "version": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 0
+          },
+          "tableId": {
+            "type": "string",
+            "example": "T02"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "bookingId",
+          "customerId",
+          "slotId",
+          "partySize",
+          "state",
+          "version"
+        ]
+      },
+      "BookingList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "CancelInput": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Đổi lịch"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CancellationReceipt": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "example": "PENDING",
+            "enum": [
+              "PENDING"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "commandId",
+          "bookingId",
+          "status"
+        ]
+      },
+      "CancellationCommand": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "example": "ACCEPTED",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "REJECTED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "example": "Đã quá giờ cho phép hủy"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "commandId",
+          "bookingId",
+          "status"
+        ]
+      },
+      "Reservation": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "slotId": {
+            "type": "string",
+            "example": "2026-11-10-dinner"
+          },
+          "partySize": {
+            "type": "integer",
+            "example": 4,
+            "minimum": 1
+          },
+          "state": {
+            "type": "string",
+            "example": "REQUESTED",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "REJECTED",
+              "CANCELLED",
+              "CHECKED_IN",
+              "SEATED",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 1
+          },
+          "tableId": {
+            "type": "string",
+            "example": "T02"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "bookingId",
+          "customerId",
+          "slotId",
+          "partySize",
+          "state",
+          "version"
+        ]
+      },
+      "ReservationList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reservation"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "TransitionInput": {
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 1
+          },
+          "tableId": {
+            "type": "string",
+            "example": "T02"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Khách không đến"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion"
+        ]
+      },
+      "TransitionResult": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "example": "REQUESTED",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "REJECTED",
+              "CANCELLED",
+              "CHECKED_IN",
+              "SEATED",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 1
+          },
+          "tableId": {
+            "type": "string",
+            "example": "T02"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "bookingId",
+          "state",
+          "version"
+        ]
+      },
+      "TimelineEntry": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "previousState": {
+            "type": "string",
+            "example": "REQUESTED",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "REJECTED",
+              "CANCELLED",
+              "CHECKED_IN",
+              "SEATED",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "example": "REQUESTED",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "REJECTED",
+              "CANCELLED",
+              "CHECKED_IN",
+              "SEATED",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "aggregateVersion": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 1
+          },
+          "actorId": {
+            "type": "string",
+            "example": "staff-001"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Đã phân bàn"
+          },
+          "occurredAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "eventId",
+          "bookingId",
+          "state",
+          "aggregateVersion",
+          "occurredAt"
+        ]
+      },
+      "Timeline": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "currentState": {
+            "type": "string",
+            "example": "REQUESTED",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "REJECTED",
+              "CANCELLED",
+              "CHECKED_IN",
+              "SEATED",
+              "COMPLETED",
+              "NO_SHOW"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 0
+          },
+          "gapDetected": {
+            "type": "boolean",
+            "example": false
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimelineEntry"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "bookingId",
+          "events"
+        ]
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "eventId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "bookingId": {
+            "type": "string",
+            "example": "11111111-1111-4111-8111-111111111111",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "example": "BOOKING_CONFIRMED"
+          },
+          "title": {
+            "type": "string",
+            "example": "Đặt bàn đã được xác nhận"
+          },
+          "message": {
+            "type": "string",
+            "example": "Bàn T02 đã được xác nhận"
+          },
+          "readAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-11-10T11:30:00+07:00",
+            "format": "date-time"
+          },
+          "deliveryStatus": {
+            "type": "string",
+            "example": "SENT"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "bookingId",
+          "title",
+          "message",
+          "createdAt"
+        ]
+      },
+      "NotificationList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          },
+          "unreadCount": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta",
+          "unreadCount"
+        ]
+      },
+      "UnreadCount": {
+        "type": "object",
+        "properties": {
+          "unreadCount": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "unreadCount"
+        ]
+      },
+      "UserList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PageMeta"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ]
+      },
+      "TableArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Table"
+        }
+      },
+      "AreaArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Area"
+        }
+      },
+      "SlotArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Slot"
+        }
+      },
+      "SlotConfig": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "lunch"
+          },
+          "startsAtLocal": {
+            "type": "string",
+            "example": "11:30"
+          },
+          "endsAtLocal": {
+            "type": "string",
+            "example": "13:00"
+          },
+          "active": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "startsAtLocal",
+          "endsAtLocal",
+          "active"
+        ]
+      },
+      "SlotConfigArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SlotConfig"
+        }
+      },
+      "GatewayHealth": {
+        "type": "object",
+        "properties": {
+          "gateway": {
+            "type": "string",
+            "example": "ok"
+          },
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "gateway"
+        ]
+      },
+      "NotificationPreferences": {
+        "type": "object",
+        "properties": {
+          "emailEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "inAppEnabled": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "emailEnabled",
+          "inAppEnabled"
+        ]
+      },
+      "StatsSummary": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-11-10",
+            "format": "date"
+          },
+          "total": {
+            "type": "integer",
+            "example": 20,
+            "minimum": 0
+          },
+          "requested": {
+            "type": "integer",
+            "example": 3,
+            "minimum": 0
+          },
+          "confirmed": {
+            "type": "integer",
+            "example": 10,
+            "minimum": 0
+          },
+          "checkedIn": {
+            "type": "integer",
+            "example": 2,
+            "minimum": 0
+          },
+          "completed": {
+            "type": "integer",
+            "example": 3,
+            "minimum": 0
+          },
+          "cancelled": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 0
+          },
+          "noShow": {
+            "type": "integer",
+            "example": 1,
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "date",
+          "total"
+        ]
+      },
+      "Ok": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "ok"
+        ]
+      }
+    }
+  }
+}

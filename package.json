@@ -1,0 +1,56 @@
+{
+  "name": "tablebooking-operation-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Operations environment baseline for TableBooking",
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/main.js",
+    "start:dev": "node --watch --import tsx src/main.ts",
+    "test": "node --test test/*.test.mjs",
+    "test:integration": "npm run build && node --test test/integration.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "keys:public": "node scripts/export-public-key.mjs",
+    "db:check": "tsx scripts/database.ts check",
+    "db:migrate": "tsx scripts/database.ts migrate",
+    "db:seed": "tsx scripts/database.ts seed",
+    "infra:up": "docker compose up -d --wait rabbitmq",
+    "infra:stop": "docker compose stop rabbitmq",
+    "docker:build": "docker build -t tablebooking-operation-service:local .",
+    "docker:up": "docker compose --profile app up -d --build --wait operation-service",
+    "docker:stop": "docker compose --profile app stop operation-service"
+  },
+  "dependencies": {
+    "@nestjs/common": "11.2.9",
+    "@nestjs/core": "11.2.9",
+    "@nestjs/platform-express": "11.2.9",
+    "@nestjs/typeorm": "11.0.3",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "amqplib": "^0.10.9",
+    "class-transformer": "0.5.1",
+    "class-validator": "^0.14.2",
+    "dotenv": "^16.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "luxon": "3.7.2",
+    "pg": "^8.16.3",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "typeorm": "1.1.2"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.7",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/luxon": "3.7.6",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "~5.9.3",
+    "yaml": "2.9.1"
+  }
+}
