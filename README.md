@@ -4,14 +4,30 @@ Service NestJS + TypeORM chịu trách nhiệm restaurant/areas/tables/slots, re
 
 ## Clone và chạy Docker
 
+Image có sẵn trên **[Docker Hub](https://hub.docker.com/r/ooshiowithlaundry/operations-service)**, hỗ trợ `linux/amd64` và `linux/arm64`:
+
+```bash
+docker pull ooshiowithlaundry/operations-service:sha-fde57a7
+# Hoặc bản mới nhất: ooshiowithlaundry/operations-service:latest
+```
+
 ```bash
 git clone https://github.com/TableBooking/operations-service.git
 cd operations-service
 ```
 
-Làm theo **[hướng dẫn Docker](docs/docker.md)** để tạo `.env`, lấy public key/CA, thiết lập schema Supabase và chạy migration/seed ngay trong container. Luồng Docker này không cần Node trên máy host. Repository không chứa `.env` hoặc các file key thực tế.
+Làm theo **[hướng dẫn Docker](docs/docker.md)** để tạo `.env`, lấy public key/CA, thiết lập schema Supabase và chạy migration/seed ngay trong container. Không cần Node trên máy host. Repository và image không chứa `.env`, file key thực tế hoặc FE.
 
-Sau khi chuẩn bị cấu hình:
+Sau khi chuẩn bị cấu hình, **pull và chạy image, không build source**:
+
+```bash
+docker compose -f compose.hub.yaml pull
+docker compose -f compose.hub.yaml run --rm --no-deps operation-service node dist/database/cli.js migrate
+docker compose -f compose.hub.yaml run --rm --no-deps operation-service node dist/database/cli.js seed
+docker compose -f compose.hub.yaml up -d --wait
+```
+
+Muốn tự build từ source thì dùng Compose dev:
 
 ```bash
 docker compose --profile app build operation-service

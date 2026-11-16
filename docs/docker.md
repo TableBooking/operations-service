@@ -4,6 +4,8 @@ Repository: https://github.com/TableBooking/operations-service
 
 Compose trong repo chạy **Operations + RabbitMQ dev**. PostgreSQL nằm trên **Supabase**, gateway/Auth do thành viên khác phụ trách. Không cần tự build hoặc push image RabbitMQ; Compose pull `rabbitmq:4-management`.
 
+Image Operations: **[ooshiowithlaundry/operations-service](https://hub.docker.com/r/ooshiowithlaundry/operations-service)**. Tag cố định `sha-fde57a7`, tag cập nhật `latest`; hỗ trợ Linux amd64 và arm64. `compose.hub.yaml` chỉ pull image, không có build context. `compose.yaml` dành cho người muốn build source. Cả hai dùng cùng project/volume dev; không khởi chạy đồng thời hai bản Operations trên cùng cổng.
+
 ## 1. Chuẩn bị
 
 - Docker Desktop đang chạy Linux containers và có Docker Compose v2 trở lên.
@@ -79,7 +81,29 @@ Chỉ chạy trên project/schema Operations của bạn. Nếu role/schema đã
 
 Username qua pooler có dạng `operations_user.PROJECT_REF`. Không để ứng dụng chạy bằng login admin `postgres`.
 
-## 4. Build, migration, seed, start
+## 4. Pull image, migration, seed, start — không build source
+
+Sau khi đã có `.env`, public key và CA:
+
+```bash
+docker pull ooshiowithlaundry/operations-service:sha-fde57a7
+docker compose -f compose.hub.yaml pull
+docker compose -f compose.hub.yaml run --rm --no-deps operation-service node dist/database/cli.js migrate
+docker compose -f compose.hub.yaml run --rm --no-deps operation-service node dist/database/cli.js seed
+docker compose -f compose.hub.yaml up -d --wait
+docker compose -f compose.hub.yaml ps
+```
+
+Seed demo là tùy chọn. Để dùng tag khác, đặt `OPERATIONS_IMAGE=ooshiowithlaundry/operations-service:latest` trong `.env`; bỏ biến này để dùng mặc định tag theo commit. Public key/credential vẫn phải tự cung cấp; chúng không nằm trong image.
+
+Muốn theo dõi log hoặc chỉ kiểm tra DB:
+
+```bash
+docker compose -f compose.hub.yaml logs --tail=100 operation-service
+docker compose -f compose.hub.yaml run --rm --no-deps operation-service node dist/database/cli.js check
+```
+
+## 4b. Tự build từ source (tùy chọn)
 
 ```bash
 docker compose --profile app build operation-service
@@ -131,6 +155,17 @@ Compose này là môi trường dev cá nhân, tự tạo broker. Khi tích hợ
 Exchange, queue, DLX arguments phải thống nhất với README và contracts. Không xóa queue để giải quyết `PRECONDITION_FAILED` vì có thể mất message.
 
 ## 7. Cập nhật và dừng
+
+Với image Docker Hub, chọn tag cần dùng trong `.env`, sau đó:
+
+```bash
+docker compose -f compose.hub.yaml pull
+docker compose -f compose.hub.yaml run --rm --no-deps operation-service node dist/database/cli.js migrate
+docker compose -f compose.hub.yaml up -d --wait
+docker compose -f compose.hub.yaml stop operation-service
+```
+
+Với bản tự build source:
 
 ```bash
 git pull --ff-only
